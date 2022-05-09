@@ -1,14 +1,43 @@
 import requests
 import json
-from pprint import pprint
+import csv
 
 apiKey = "c9sdv8qad3i4aps1sleg"
+symbols = ["AAPL", "AMZN", "NFLX", "GOOG", "FB"]
 
-symbol = "DAL"
 
-base_url = "https://finnhub.io/api/v1/stock/profile2?"
-r = requests.get(baseurl, params = {'symbol':symbol,'token':apiKey}
-text = r.text
-company_profile = json.loads(text)
+# Get Quotes
+base_url="https://finnhub.io/api/v1/quote?"
+stocks = {}
+stocks_change = {}
 
-pprint(company_profile)
+for i in symbols:
+    r = requests.get(base_url, params = {'symbol':i,'token':apiKey})
+    text = r.text
+    
+    stock = json.loads(text)
+    stocks[i] = stock
+    stocks_change[i] = stock["dp"]
+
+
+greatest_change = max(stocks_change, key=stocks_change.get)
+
+most_volatile_stock = (stocks[greatest_change])
+
+stock_symbol = greatest_change
+percentage_change = most_volatile_stock["dp"]
+current_price = most_volatile_stock["c"]
+last_close_price= most_volatile_stock["pc"]
+
+
+csv_columns = ['stock_symbol','percentage_change','current_price', "last_close_price"]
+# dict_data = {'stock_symbol' : stock_symbol, 'percentage_change': percentage_change,'current_price': current_price, "last_close_price": last_close_price}
+csv_rows = [stock_symbol, percentage_change, current_price, last_close_price]
+csv_file = "stocks.csv"
+try:
+    with open(csv_file, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(csv_columns)
+        writer.writerow(csv_rows)
+except IOError:
+    print("I/O error")
